@@ -1,0 +1,9 @@
+{
+    "servers[0][location]" : "us-east-1",
+    "servers[0][size]" : "m5.large",
+    "servers[0][num]" : "1", 
+    "servers[0][onDemand]" : "T", 
+    "servers[0][usersPerServer]" : "1",
+    "keyPairId" : "5203", 
+    "servers[0][subnetId]" : "subnet-00d66cc55ec4cf4bd"
+}
