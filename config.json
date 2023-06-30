@@ -1,0 +1,17 @@
+{
+    "servers": [
+      {
+        "location": "us-east-1",
+        "size": "m5.large",
+        "usersPerServer": "1",
+        "num": "1",
+        "onDemand": "T",
+        "subnetId": "subnet-00d66cc55ec4cf4bd"
+      }
+    ],
+   "keyPairId": "5203",
+   "numServers": "1",
+   "version": "5.5",
+   "name": "CliLoadTestWithJson",
+   "desc": "Test Description"
+ }

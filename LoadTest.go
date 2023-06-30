@@ -15,6 +15,8 @@ import (
 )
 
 
+var bodyData map[string]string;
+
 //_______________________________________________//
 //Entry Point//
 
@@ -33,8 +35,8 @@ func handleLoadTest() {
 		logFileReplayTest();
 	case "custom":
 		customLoadTest();
-	case "testJSON":
-		fmt.Println(parseLoadTestJSON("serverData.json"));
+	case "test":
+		testLoadTest();
 	default:
 		fmt.Println("Unknown test type provided");
 	}
@@ -161,7 +163,7 @@ func jmeterLoadTest() {
 		return;
 	}
 	
-	err = addFileToBody(filePath, writer);
+	err = addFileToBody(filePath, writer, "file");
 	if err != nil {
 		return;
 	}
@@ -236,16 +238,16 @@ func logFileReplayTest() {
 		return;
 	}
 	
-	err = addFileToBody(filePath, writer);
+	err = addFileToBody(filePath, writer, "file");
 	if err != nil {
 		return;
 	}
 
 	// Close the multipart form
-	err = writer.Close()
+	err = writer.Close();
 	if err != nil {
-		fmt.Println("Error closing multipart form:", err)
-		return
+		fmt.Println("Error closing multipart form:", err);
+		return;
 	}
 	//fmt.Println(writer.FormDataContentType());
 	fmt.Println(httpPostRequest(body, writer.FormDataContentType()));
@@ -299,7 +301,7 @@ func customLoadTest() {
 		return;
 	}
 
-	err = addFileToBody(filePath, writer);
+	err = addFileToBody(filePath, writer, "file");
 	if err != nil {
 		return;
 	}
@@ -309,6 +311,85 @@ func customLoadTest() {
 		fmt.Println("Error closing multipart form:", err)
 		return
 	}
+}
+
+////////////////
+func testLoadTest() {
+	bodyData = make(map[string]string);
+	data, err := parseTestJSON("config.json");
+	if err != nil {
+		fmt.Println("Error parsing JSON")
+		return;
+	}
+	for key, value := range data {
+		bodyData[key] = value;
+	}
+	jsonPath := getFlag("-loadJSON", "");
+	if jsonPath != "" {
+		data, err := parseTestJSON("config.json");
+		if err != nil {
+			fmt.Println("Error parsing JSON")
+			return;
+		}
+		for key, value := range data {
+			bodyData[key] = value;
+		}
+	}
+
+	filePath := getFileArg(".jmx");
+	if (filePath == "") {
+		fmt.Println("Please provide a Jmeter test file");
+		return;
+	} else {
+		bodyData["file"] = filePath;
+	}
+
+	fmt.Println(bodyData);
+	
+	/*
+	numServers := getFlag("-numServers", "1");
+
+	version := getFlag("-version", "5.5");
+
+	name := getFlag("-name", "");
+
+	desc := getFlag("-desc", "");
+
+	storeOutput := getFlag("-storeOutput", "");
+
+	plugins := getMultiFlag("-plugin", "");
+
+	//flags that aren't single value (unsure how to handle and no examples in redline/tests)
+	opts 
+	webdriver-width	
+	webdriver-height
+	webdriver-depth	
+	jvm_args	
+	[plugin-name]_[KEY]
+	**Need CLI usage : -jvm_args Xms256m Xmx256m** ?
+	**Need Curl example : -F jvm_args=[Xms256m, Xmx256m]** ?
+	*/
+
+	body := &bytes.Buffer{};
+	writer := multipart.NewWriter(body);
+
+	writer.WriteField("testType", "jmeter-test");
+
+	for key, value := range bodyData {
+		if isFile(value) {
+			addFileToBody(value, writer, key);
+		} else {
+			writer.WriteField(string(key), string(value));
+		}
+	}
+
+	err = writer.Close()
+	if err != nil {
+		fmt.Println("Error closing multipart form:", err);
+		return;
+	}
+
+	fmt.Println(httpPostRequest(body, writer.FormDataContentType()))
 }
 
 
@@ -360,6 +441,69 @@ func printLoadTestInfo() {
 	fmt.Println("	    Custom Test");
 }
 
+func parseTestJSON(path string) (map[string]string, error) {
+	var ret map[string]string;
+	ret = make(map[string]string);
+
+	jsonData, err := ioutil.ReadFile(path);
+	if err != nil {
+		fmt.Println("Error reading JSON file:", err);
+		return nil, err;
+	}
+
+	var data map[string]json.RawMessage
+	err = json.Unmarshal([]byte(jsonData), &data)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	for key, value := range data {
+		switch key {
+		case "servers", "extras", "split":
+			var serverArray []map[string]string;
+			err := json.Unmarshal(value, &serverArray)
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
+			} else {
+				count := 0;
+				for _, item := range serverArray {
+					for innerKey := range item {
+						sKey := fmt.Sprintf("%s[%d][%s]", key, count, innerKey)
+						fmt.Println(sKey, item[innerKey]);
+						ret[sKey] = item[innerKey];
+					}
+					count++;
+				}
+			}
+		case "plugin":
+			var pluginArray []string;
+			err := json.Unmarshal(value, &pluginArray);
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
+			} else {
+				count := 0
+				for _, value := range pluginArray {
+					sKey := fmt.Sprintf("plugin[%d]", count)
+					ret[sKey] = value;
+					count++;
+				}
+			}
+		default:
+			var sValue string;
+			err := json.Unmarshal(value, &sValue)
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
+			} else {
+				fmt.Println(key, sValue);
+				ret[key] = sValue;
+			}
+		}
+	}
+
+	return ret, nil; 
+}
+
 func parseLoadTestJSON(path string) ([][]string, error) {
 	jsonData, err := ioutil.ReadFile(path);
 	if err != nil {
@@ -393,7 +537,7 @@ func addFieldsToBody(form url.Values, writer *multipart.Writer) error {
 	return nil;
 }
 
-func addFileToBody(filePath string, writer *multipart.Writer) error {
+func addFileToBody(filePath string, writer *multipart.Writer, key string) error {
 	//filePath := "/Downloads/MyJmeterTest.log"
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -403,7 +547,7 @@ func addFileToBody(filePath string, writer *multipart.Writer) error {
 	defer file.Close()
 
 	// Create the file part in the multipart form
-	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	part, err := writer.CreateFormFile(key, filepath.Base(filePath))
 	if err != nil {
 		fmt.Println("Error creating form file part:", err)
 		return err;
@@ -416,6 +560,18 @@ func addFileToBody(filePath string, writer *multipart.Writer) error {
 		return err;
 	}
 	return nil;
+}
+
+func isFile(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false // File does not exist
+		}
+		fmt.Println("Could not determine if value is file:", err);
+		return false
+	}
+	return !info.IsDir()
 }
 
 func getFileArg(fileType string) string {
