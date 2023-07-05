@@ -131,6 +131,7 @@ func printStatsDownloadInfo() {
 	fmt.Println("	statsDownload - Download loadTest stats as CSV");
 	fmt.Println("	    Flags:");	
 	fmt.Println("	        -id {load_test_id} : ID of loadTest to download data");
+	fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
 }
 
 func parseStatsDownloadJSON(jsonData []byte) [][]string{
