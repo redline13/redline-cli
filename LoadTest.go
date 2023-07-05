@@ -20,12 +20,14 @@ var bodyData map[string]string;
 //_______________________________________________//
 //Entry Point//
 
-func handleLoadTest() {
+func handleLoadTest(shortCall bool) {
 	argument := "";
 	if (len(args) > 2) {
 		argument = args[2];
 	}
-
+	if shortCall {
+		argument = args[1];
+	}
 	switch argument {
 	case "simple":
 		simpleLoadTest();
@@ -315,7 +317,24 @@ func customLoadTest() {
 
 ////////////////
 func testLoadTest() {
+	var jmeterSingleValueFlags []string = []string{
+		"name", 
+		"desc", 
+		"numServers", 
+		"version", 
+		"storeOutput", 
+		"webdriver-width", 
+		"webdriver-height", 
+		"webdriver-depth",
+	}
+	// remaining jmeter flags 
+	// servers
+	// opts 
+	// jvm_args	
+	// [plugin-name]_[KEY]
+
 	bodyData = make(map[string]string);
+
 	data, err := parseTestJSON("config.json");
 	if err != nil {
 		fmt.Println("Error parsing JSON")
@@ -324,9 +343,10 @@ func testLoadTest() {
 	for key, value := range data {
 		bodyData[key] = value;
 	}
-	jsonPath := getFlag("-loadJSON", "");
+
+	jsonPath := getFlag("-cfg", "");
 	if jsonPath != "" {
-		data, err := parseTestJSON("config.json");
+		data, err := parseTestJSON(jsonPath);
 		if err != nil {
 			fmt.Println("Error parsing JSON")
 			return;
@@ -339,31 +359,29 @@ func testLoadTest() {
 	filePath := getFileArg(".jmx");
 	if (filePath == "") {
 		fmt.Println("Please provide a Jmeter test file");
-		return;
+		//return;
 	} else {
 		bodyData["file"] = filePath;
 	}
 
+	for _, flag := range jmeterSingleValueFlags {
+		if flagValue := getFlag(fmt.Sprintf("-%s", flag), ""); flagValue != "" {
+			bodyData[flag] = flagValue;
+		}
+	}
+
 	fmt.Println(bodyData);
-	
+
+	// numServers := getFlag("-numServers", "");
+	// if numServers != "" {
+	// 	bodyData["numServers"] = numServers;
+	// }
+
+	//plugins := getMultiFlag("-plugin");
+
 	/*
-	numServers := getFlag("-numServers", "1");
-
-	version := getFlag("-version", "5.5");
-
-	name := getFlag("-name", "");
-
-	desc := getFlag("-desc", "");
-
-	storeOutput := getFlag("-storeOutput", "");
-
-	plugins := getMultiFlag("-plugin", "");
-
 	//flags that aren't single value (unsure how to handle and no examples in redline/tests)
 	opts 
-	webdriver-width	
-	webdriver-height
-	webdriver-depth	
 	jvm_args	
 	[plugin-name]_[KEY]
 	**Need CLI usage : -jvm_args Xms256m Xmx256m** ?
@@ -403,7 +421,7 @@ func httpPostRequest(body *bytes.Buffer, content string) string {
 	//(body *bytes.Buffer)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/Api/LoadTest", build), body);
 
-	fmt.Println(body);
+
 	if err != nil {
 		fmt.Println("Error creating request: " + err.Error());
 		return "";
@@ -451,26 +469,26 @@ func parseTestJSON(path string) (map[string]string, error) {
 		return nil, err;
 	}
 
-	var data map[string]json.RawMessage
-	err = json.Unmarshal([]byte(jsonData), &data)
+	var data map[string]json.RawMessage;
+	err = json.Unmarshal([]byte(jsonData), &data);
 	if err != nil {
-		fmt.Println("Error:", err)
-		return nil, err
+		fmt.Println("Error:", err);
+		return nil, err;
 	}
 
 	for key, value := range data {
 		switch key {
 		case "servers", "extras", "split":
 			var serverArray []map[string]string;
-			err := json.Unmarshal(value, &serverArray)
+			err := json.Unmarshal(value, &serverArray);
 			if err != nil {
 				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
 			} else {
 				count := 0;
 				for _, item := range serverArray {
 					for innerKey := range item {
-						sKey := fmt.Sprintf("%s[%d][%s]", key, count, innerKey)
-						fmt.Println(sKey, item[innerKey]);
+						sKey := fmt.Sprintf("%s[%d][%s]", key, count, innerKey);
+						//fmt.Println(sKey, item[innerKey]);
 						ret[sKey] = item[innerKey];
 					}
 					count++;
@@ -490,12 +508,15 @@ func parseTestJSON(path string) (map[string]string, error) {
 				}
 			}
 		default:
+			if key == "apikey" {
+				break;
+			}
 			var sValue string;
 			err := json.Unmarshal(value, &sValue)
 			if err != nil {
 				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
 			} else {
-				fmt.Println(key, sValue);
+				//fmt.Println(key, sValue);
 				ret[key] = sValue;
 			}
 		}
@@ -571,12 +592,12 @@ func isFile(path string) bool {
 		fmt.Println("Could not determine if value is file:", err);
 		return false
 	}
-	return !info.IsDir()
+	return !info.IsDir();
 }
 
 func getFileArg(fileType string) string {
 	for i := 0; i < len(args); i++ {
-		if (strings.Contains(args[i], fileType)) {
+		if (strings.Contains(args[i], fileType) && isFile(args[i])) {
 			return args[i];
 		}
 	}

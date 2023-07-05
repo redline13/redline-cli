@@ -5,11 +5,16 @@ import (
 	"os";
 	"io/ioutil";
 	"strings";
+	"encoding/json";
 )
 
 var production string = "https://www.redline13.com"
 var localHost string = "http://localhost";
 var build string = production;
+
+var defaultConfigPath string = "config.json";
+
+var shortCallTestTypes []string = []string{"simple", "jmeter", "logfile", "custom", "test"};
 
 var args = os.Args;
 
@@ -31,7 +36,7 @@ func main() {
 	}
 
 	switch argument {
-	case "loadTest":
+	case "loadTest", "simple", "jmeter", "logifle", "custom", "test" :
 		loadTest();
 	case "viewTest":
 		viewTest();
@@ -64,17 +69,21 @@ func apiKey() {
 	noArg := len(args) < 3;
 	if (noArg && apikey == "") {
 		fmt.Println("You have no saved apikey, please visit https://www.redline13.com/Account/apikey to generate an api key");
-	} else if (noArg){
-		fmt.Println("Key: " + apikey)
-	} else {
-		key := setAPIKEY(args[2]);
+	} else if flag := getFlag("-set", ""); flag != "" {
+		key := setAPIKEYJson(flag);
 		fmt.Println("Key set: " + key);
+	} else if getFlagExist("-show") {
+		fmt.Println("Key: " + apikey);
+	} else {
+		printAPIKEYInfo();
 	}
 }
 
 func loadTest() {
 	// Create and handle loadTest
-	handleLoadTest();
+	argument := args[1];
+	shortCall := (argument == "simple" || argument == "jmeter" || argument == "logfile" || argument == "custom" || argument == "test");
+	handleLoadTest(shortCall);
 }
 
 func viewTest() {
@@ -93,9 +102,9 @@ func statsDownload() {
 
 func printAPIKEYInfo() {
 	fmt.Println("	apikey - Set/Display your API key");
-	fmt.Println("	    [operation] {command}:");
-	fmt.Println("	        [Set] Redline apikey {your apikey}");
-	fmt.Println("	        [Show] Redline apikey");
+	fmt.Println("	    Flags:");
+	fmt.Println("	        -set {your apikey} : Sets your API key");
+	fmt.Println("	        -show : Displays API key");
 }
 
 func setAPIKEY(apikey string) string {
@@ -107,13 +116,71 @@ func setAPIKEY(apikey string) string {
 	return apikey;
 }
 
-func getAPIKEY() string {
-	content, err := ioutil.ReadFile("key.txt");
+// func getAPIKEY() string {
+// 	content, err := ioutil.ReadFile("key.txt");
+// 	if err != nil {
+// 		fmt.Println(err);
+// 		return "";
+// 	}
+// 	return string(content);
+// }
+
+func setAPIKEYJson(apikey string) string {
+	jsonData, err := ioutil.ReadFile(defaultConfigPath);
 	if err != nil {
-		fmt.Println(err);
+		fmt.Println("Error reading JSON file:", err);
 		return "";
 	}
-	return string(content);
+
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(jsonData), &data)
+	if err != nil {
+		return "";
+	}
+
+	data["apikey"] = apikey;
+
+	updatedJson, err := json.Marshal(data)
+	if err != nil {
+		return "";
+	}
+
+	err = ioutil.WriteFile(defaultConfigPath, updatedJson, 0644)
+	if err != nil {
+		return "";
+	}
+
+	return apikey;
+
+}
+
+func getAPIKEY() string {
+	var path string = defaultConfigPath;
+	var apikey string = "";
+
+	jsonData, err := ioutil.ReadFile(path);
+	if err != nil {
+		fmt.Println("Error reading JSON file:", err);
+		return "";
+	}
+
+	var data map[string]json.RawMessage;
+	err = json.Unmarshal([]byte(jsonData), &data);
+	if err != nil {
+		fmt.Println("Error:", err);
+		return "";
+	}
+	
+	for key, value := range data {
+		if (key == "apikey") {
+			err := json.Unmarshal(value, &apikey);
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
+			}
+		}
+	}
+	fmt.Println()
+	return apikey;
 }
 
 func displayArgs() {
@@ -133,8 +200,8 @@ func getFlag(flag string, defaultFlag string) string {
 	return defaultFlag;
 }
 
-func getFlagExist(flag string, defaultFlag bool) bool {
-	for i := 0; i < (len(args) - 1); i++ {
+func getFlagExist(flag string) bool {
+	for i := 0; i < (len(args)); i++ {
 		if (args[i] == flag) {
 			return true;
 		}
