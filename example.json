@@ -1,0 +1,54 @@
+{
+    "name":"CliLoadTestWithJson",
+    "desc":"Test Description",
+    "version": "5.5",
+    "numServers":"1",
+    "plugins": 
+    [ 
+        { 
+            "plugin": "foo", 
+            "options": 
+            { 
+                "abc": "123", 
+                "def": "false" 
+            }
+        },
+        {
+            "plugin": "foo2", 
+            "options": 
+            { 
+                "abc": "1234", 
+                "def": "true" 
+            }
+        },
+        {
+            "plugin": "foo3", 
+            "options": 
+            { 
+                "abc": "1234", 
+                "def": "true" 
+            }
+        },
+        {
+            "plugin": "foo4", 
+            "options": 
+            { 
+                "abc": "1234", 
+                "def": "false" 
+            }
+        }
+    ],
+    "jvm_args": 
+    [
+        "arg1",
+        "arg2"
+    ],
+    "opts": 
+    {
+        "-Jprotocol": "https",
+        "-Jport" : "443",
+        "-Jdomain": "mywebsite.com",
+        "-JapiAppName": "something"
+    }
+
+}
