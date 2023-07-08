@@ -61,7 +61,7 @@ func handleStatsDownload() {
 //_______________________________________________//
 //Core Functions//
 
-func httpRequestStatsDownload(id string) []byte{
+func httpRequestStatsDownload(id string) []byte {
 	client := http.Client{};
 
 	url := fmt.Sprintf("%s/Api/StatsDownloadUrls?loadTestId=%s", build, id);
@@ -94,34 +94,34 @@ func httpRequestStatsDownload(id string) []byte{
 func downloadFile(url string, directory string, fileName string) {
 	fileName += ".csv";
 	
-	err := os.MkdirAll(directory, os.ModePerm)
+	err := os.MkdirAll(directory, os.ModePerm);
 	if err != nil {
 		fmt.Println(err);
 		return; 
 	}
 
-	filePath := filepath.Join(directory, fileName)
-	file, err := os.Create(filePath)
+	filePath := filepath.Join(directory, fileName);
+	file, err := os.Create(filePath);
 	if err != nil {
 		fmt.Println(err);
 		return; 
 	}
-	defer file.Close()
+	defer file.Close();
 
-	response, err := http.Get(url)
+	response, err := http.Get(url);
 	if err != nil {
 		fmt.Println(err);
 		return; 
 	}
-	defer response.Body.Close()
+	defer response.Body.Close();
 
-	_, err = io.Copy(file, response.Body)
+	_, err = io.Copy(file, response.Body);
 	if err != nil {
 		fmt.Println(err);
 		return;
 	}
 
-	fmt.Println("File downloaded successfully:", filePath)
+	fmt.Println("File downloaded successfully:", filePath);
 }
 
 //_______________________________________________//
@@ -134,32 +134,32 @@ func printStatsDownloadInfo() {
 	fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
 }
 
-func parseStatsDownloadJSON(jsonData []byte) [][]string{
-	var data map[string]string
+func parseStatsDownloadJSON(jsonData []byte) [][]string {
+	var data map[string]string;
 	err := json.Unmarshal(jsonData, &data);
 	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
+		fmt.Println("Error parsing JSON:", err);
 		return nil;
 	}
 
-	var arr [][]string
+	var arr [][]string;
 	for key, value := range data {
-		arr = append(arr, []string{key, value})
+		arr = append(arr, []string{key, value});
 	}
 	return arr;
 }
 
 func getDownloadsFolderPath() string {
-	usr, err := user.Current()
+	usr, err := user.Current();
 	if err != nil {
 		fmt.Println(err);
 		return "";
 	}
 
-	homeDir := usr.HomeDir
+	homeDir := usr.HomeDir;
 
-	downloadsDir := filepath.Join(homeDir, "Downloads")
-	return downloadsDir
+	downloadsDir := filepath.Join(homeDir, "Downloads");
+	return downloadsDir;
 }
 
 // func getDownloadTypes() []string {

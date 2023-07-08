@@ -10,7 +10,7 @@ import (
 
 var production string = "https://www.redline13.com"
 var localHost string = "http://localhost";
-var build string = production;
+var build string = localHost;
 
 var defaultConfigPath string = "config.json";
 
@@ -22,14 +22,6 @@ var args = os.Args;
 //Entry Point//
 
 func main() {
-	//displayArgs(args);
-
-	//fmt.Println(len(args))
-
-
-	//switch for first arg parameter,
-	//could be loadTest, viewTest or apikey
-
 	argument := "";
 	if (len(args) > 1) {
 		argument = args[1];
@@ -70,7 +62,7 @@ func apiKey() {
 	if (noArg && apikey == "") {
 		fmt.Println("You have no saved apikey, please visit https://www.redline13.com/Account/apikey to generate an api key");
 	} else if flag := getFlag("-set", ""); flag != "" {
-		key := setAPIKEYJson(flag);
+		key := setAPIKEY(flag);
 		fmt.Println("Key set: " + key);
 	} else if getFlagExist("-show") {
 		fmt.Println("Key: " + apikey);
@@ -108,24 +100,6 @@ func printAPIKEYInfo() {
 }
 
 func setAPIKEY(apikey string) string {
-	err := ioutil.WriteFile("key.txt", []byte(apikey), 0644);
-	if err != nil {
-		fmt.Println(err);
-		return "";
-	}
-	return apikey;
-}
-
-// func getAPIKEY() string {
-// 	content, err := ioutil.ReadFile("key.txt");
-// 	if err != nil {
-// 		fmt.Println(err);
-// 		return "";
-// 	}
-// 	return string(content);
-// }
-
-func setAPIKEYJson(apikey string) string {
 	jsonData, err := ioutil.ReadFile(defaultConfigPath);
 	if err != nil {
 		fmt.Println("Error reading JSON file:", err);
@@ -133,25 +107,24 @@ func setAPIKEYJson(apikey string) string {
 	}
 
 	var data map[string]interface{}
-	err = json.Unmarshal([]byte(jsonData), &data)
+	err = json.Unmarshal([]byte(jsonData), &data);
 	if err != nil {
 		return "";
 	}
 
 	data["apikey"] = apikey;
 
-	updatedJson, err := json.Marshal(data)
+	updatedJson, err := json.Marshal(data);
 	if err != nil {
 		return "";
 	}
 
-	err = ioutil.WriteFile(defaultConfigPath, updatedJson, 0644)
+	err = ioutil.WriteFile(defaultConfigPath, updatedJson, 0644);
 	if err != nil {
 		return "";
 	}
 
 	return apikey;
-
 }
 
 func getAPIKEY() string {
@@ -175,11 +148,10 @@ func getAPIKEY() string {
 		if (key == "apikey") {
 			err := json.Unmarshal(value, &apikey);
 			if err != nil {
-				fmt.Printf("Error parsing value for key '%s': %s\n", key, err)
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
 			}
 		}
 	}
-	fmt.Println()
 	return apikey;
 }
 

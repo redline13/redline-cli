@@ -47,7 +47,7 @@ func showTests() {
 	for _, test := range parsedJSON {
 		for i := 0; i < len(test); i++ {
 			if (test[i][0] == "load_test_id" || test[i][0] == "load_test_name") {
-				fmt.Println(test[i][0] + ": " + test[i][1])
+				fmt.Println(test[i][0] + ": " + test[i][1]);
 			}
 		}
 		fmt.Println();
@@ -94,28 +94,28 @@ func printViewTestInfo() {
 
 func parseViewTestJSON(jsonData []byte) [][][]string {
 	// Dump json into map
-	var data []map[string]interface{}
-	err := json.Unmarshal(jsonData, &data)
+	var data []map[string]interface{};
+	err := json.Unmarshal(jsonData, &data);
 	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return nil
+		fmt.Println("Error parsing JSON:", err);
+		return nil;
 	}
 
 	// Convert map into 3d array [loadTest][dataEntry][(datapair: [key, value])]
-	var Rarr [][][]string
+	var Rarr [][][]string;
 	for _, obj := range data {
-		var arr [][]string
+		var arr [][]string;
 		for key, value := range obj {
-			strValue := ""
+			strValue := "";
 			switch v := value.(type) {
 			case string:
-				strValue = v
+				strValue = v;
 			case int, int64, float64:
-				strValue = fmt.Sprintf("%v", v)
+				strValue = fmt.Sprintf("%v", v);
 			}
-			arr = append(arr, []string{key, strValue})
+			arr = append(arr, []string{key, strValue});
 		}
 		Rarr = append(Rarr, arr);
 	}
-	return Rarr
+	return Rarr;
 }
