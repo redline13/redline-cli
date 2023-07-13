@@ -128,10 +128,17 @@ func downloadFile(url string, directory string, fileName string) {
 //Miscellaneous//
 
 func printStatsDownloadInfo() {
-	fmt.Println("	statsDownload - Download loadTest stats as CSV");
-	fmt.Println("	    Flags:");	
-	fmt.Println("	        -id {load_test_id} : ID of loadTest to download data");
-	fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
+	// fmt.Println("	statsDownload - Download loadTest stats as CSV");
+	// fmt.Println("	    Flags:");	
+	// fmt.Println("	        -id {load_test_id} : ID of loadTest to download data");
+	// fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
+	fmt.Println("Usage:")
+	fmt.Println("    redline13 statsdownload [flags]")
+	fmt.Println("\nFlags:")
+	fmt.Println("    -id - ID of loadTest to download data")
+	fmt.Println("    -type {type1Value} {type2Value}... - Specific download types to download")
+	fmt.Println("\nExamples:")
+	fmt.Println("    redline13 statsdownload -id 123321 -type cpuUsage netIn netOut")
 }
 
 func parseStatsDownloadJSON(jsonData []byte) [][]string {

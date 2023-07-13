@@ -30,11 +30,17 @@ func handleLoadTest(shortCall bool) {
 	} else if len(args) > 2 {
 		argument = args[2];
 	}
+
+	if (getFileArg(".jmx") != "") {
+		argument = "jmeter";
+	}
+
+
 	switch argument {
 	case "simple":
 		//simpleLoadTest();
 	case "jmeter":
-		//jmeterLoadTest();
+		jmeterLoadTest();
 	case "logfile":
 		//logFileReplayTest();
 	case "custom":
@@ -315,8 +321,8 @@ func handleLoadTest(shortCall bool) {
 // 	}
 // }
 
-// //////////////
-func testLoadTest() {
+//////////////////////
+func jmeterLoadTest() {
 	var jmeterSingleValueFlags []string = []string{
 		"name",
 		"desc",
@@ -530,16 +536,44 @@ func redirectBrowserToUrl(id string) {
 	}
 }
 
+func testLoadTest() {
+	fmt.Println("test loadtest function");
+}
+
 //_______________________________________________//
 //Miscellaneous//
 
 func printLoadTestInfo() {
-	fmt.Println("	loadTest - Starts a load test");
-	fmt.Println("	    Simple Test");
-	fmt.Println("	    JMeter Test");
-	fmt.Println("	    LogFileReplay Test");
-	fmt.Println("	    Gatling Test");
-	fmt.Println("	    Custom Test");
+	// fmt.Println("	loadTest - Starts a load test");
+	// fmt.Println("	    Simple Test");
+	// fmt.Println("	    JMeter Test");
+	// fmt.Println("	    LogFileReplay Test");
+	// fmt.Println("	    Gatling Test");
+	// fmt.Println("	    Custom Test");
+	fmt.Println("Usage:");
+	fmt.Println("    redline13 run [testType/fileForTest] [flags]");
+	fmt.Println("\nTest Types:");
+	fmt.Println("    jmeter - can ommit by providing .jmx file type");
+	fmt.Println("    More to be added...");
+	fmt.Println("\nFlags:")
+	fmt.Println("    -cfg - Takes additional .json file to overwrite values in config")
+	fmt.Println("    -name - Name of loadtest")
+	fmt.Println("    -desc - Description of loadtest")
+	fmt.Println("    -version - jmeter version of test to run");
+	fmt.Println("    -numServers - number of servers to run test on");
+	fmt.Println("    -storeOutput - Boolean, of whether test output should be saved");
+	fmt.Println("    -webdriver-width - width of screen for simulated browser");
+	fmt.Println("    -webdriver-height - height of screen for simulated browser");
+	fmt.Println("    -webdriver-depth - screen depth for simulated browser");
+	fmt.Println("    -opts - Specify JMeter options as string \"-Jkey=value -Jkey=value\"");
+	fmt.Println("    -servers - Specify servers as Array of Json objects [{\"size\":\"m5.large\", \"location\":\"us-east-1\"}, {}]");
+	fmt.Println("    -plugins - Specify plugins as Array of Json objects [{\"plugin\": \"myPlugin\", \"options\": {\"myOption\": \"optionValue\", \"\": \"\"}}]");
+	fmt.Println("    -jvm_args - Specify JVM Options such as \"Xms256m Xmx256m\"");
+	fmt.Println("    -extras - Extra file(s) to be included in loadtest");
+	fmt.Println("    -split - Filename(s) will be split across all the test servers, Usually used for splitting CSV files.");
+	fmt.Println("    -o - follows loadtest to browser");
+	fmt.Println("\nExamples:");
+	fmt.Println("    redline13 run test.jmx -cfg myConfig.json -name CLILoadTest -desc \"my desc\" -extras extra1.csv extra2.csv");
 }
 
 func parseTestJSON(path string) (map[string]interface{}, error) {
@@ -700,7 +734,7 @@ func addFieldsToBody(form url.Values, writer *multipart.Writer) error {
 }
 
 func addFileToBody(filePath string, writer *multipart.Writer, key string) error {
-	//filePath := "/Downloads/MyJmeterTest.log"
+	//filePath := "/Downloads/MyJmeterTest.jmx"
 	file, err := os.Open(filePath);
 	if err != nil {
 		fmt.Println("Error opening file:", err);
@@ -754,7 +788,6 @@ func writeFromBodyData(writer *multipart.Writer, data map[string]interface{}) {
 			writer.WriteField(string(key), string(value));
 		}
 	}
-
 	for key, value := range data {
 		switch value.(type) {
 		case []string:
