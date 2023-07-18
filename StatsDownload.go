@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json";
-	"fmt";
-	"net/http";
-	"io/ioutil";
-	"io";
-	"os";
-	"os/user";
-	"path/filepath";
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	"path/filepath"
 )
 
 //_______________________________________________//
@@ -26,7 +26,7 @@ func handleStatsDownload() {
 	// Get Path flag
 	path := getFlag("-path", "");
 	if (path == "") {
-		path = getDownloadsFolderPath();
+		path = getDownloadDirPath();
 	}
 	response := httpRequestStatsDownload(id);
 	parsedResponse := parseStatsDownloadJSON(response);
@@ -48,8 +48,18 @@ func handleStatsDownload() {
 			//fmt.Println(localDownloadType);
 			if (localDownloadType == downloadType) {
 				foundType = true;
-				url := parsedResponse[0][1];
-				downloadFile(url, path, fmt.Sprintf("%s_%s", id, localDownloadType));
+				url := parsedResponse[i][1];
+
+				fileType := ""
+				if (localDownloadType == "merged" || localDownloadType == "report") {
+					fileType = ".tar.gz";
+				} else if (strings.Contains(localDownloadType, "outputFile")) {
+					fileType = ".tgz";
+				} else {
+					fileType = ".csv";
+				}
+	
+				downloadFile(url, path, fmt.Sprintf("%s_%s", id, localDownloadType), fileType);
 			}	
 		}
 		if (!foundType) {
@@ -87,13 +97,12 @@ func httpRequestStatsDownload(id string) []byte {
 		fmt.Println("Error reading response body: " + err.Error());
 		return nil;
 	}
-
 	return body;
 }
 
-func downloadFile(url string, directory string, fileName string) {
-	fileName += ".csv";
-	
+func downloadFile(url string, directory string, fileName string, fileType string) {
+	fileName += fileType;
+
 	err := os.MkdirAll(directory, os.ModePerm);
 	if err != nil {
 		fmt.Println(err);
@@ -142,7 +151,8 @@ func printStatsDownloadInfo() {
 }
 
 func parseStatsDownloadJSON(jsonData []byte) [][]string {
-	var data map[string]string;
+	// Set up handling array in response
+	var data map[string]json.RawMessage;
 	err := json.Unmarshal(jsonData, &data);
 	if err != nil {
 		fmt.Println("Error parsing JSON:", err);
@@ -151,42 +161,50 @@ func parseStatsDownloadJSON(jsonData []byte) [][]string {
 
 	var arr [][]string;
 	for key, value := range data {
-		arr = append(arr, []string{key, value});
+		if key == "outputFiles" {
+			var outputFiles []map[string]interface{};
+			err := json.Unmarshal(value, &outputFiles)
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
+			} else {
+				for i, file := range outputFiles {
+					sKey := fmt.Sprintf("outputFile%d", i);
+					arr = append(arr, []string{sKey, file["url"].(string)});
+				}
+			}
+		} else {
+			var val string;
+			err := json.Unmarshal(value, &val);
+			if err != nil {
+				fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
+			} else {
+				arr = append(arr, []string{key, val});
+			}
+		}
 	}
+
 	return arr;
 }
 
-func getDownloadsFolderPath() string {
-	usr, err := user.Current();
+func getDownloadDirPath() string {
+	// usr, err := user.Current();
+	// if err != nil {
+	// 	fmt.Println(err);
+	// 	return "";
+	// }
+
+	// homeDir := usr.HomeDir;
+	// downloadsDir := filepath.Join(homeDir, "Downloads");
+
+    //return downloadsDir;
+
+	// _____________________________________ //
+
+	// Downlaod to current working directory 
+	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err);
-		return "";
+		fmt.Println(err)
 	}
 
-	homeDir := usr.HomeDir;
-
-	downloadsDir := filepath.Join(homeDir, "Downloads");
-	return downloadsDir;
+	return cwd;
 }
-
-// func getDownloadTypes() []string {
-// 	ret := []string{};
-
-// 	active := false
-// 	for i := 0; i < len(args); i++ {
-// 		//fmt.Println(args[i]);
-// 		typeFlag := args[i] == "-type"
-// 		if (typeFlag) {
-// 			active = true;
-// 			//fmt.Println("actived");
-// 		}
-// 		isFlag := strings.Contains(args[i], "-")
-// 		if (!isFlag && active) {
-// 			ret = append(ret, args[i]);
-// 		} else if (isFlag && !typeFlag) {
-// 			active = false;
-// 			//fmt.Println("unactived");
-// 		}
-// 	}
-// 	return ret;
-// }

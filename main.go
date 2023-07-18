@@ -10,15 +10,17 @@ import (
 	"runtime";
 )
 
-var production string = "https://www.redline13.com"
+var production string = "https://www.redline13.com";
 var localHost string = "http://localhost";
-var build string = localHost;
+var build string = production;
 
 var defaultConfigPath string;
 
 var shortCallTestTypes []string = []string{"simple", "jmeter", "logfile", "custom", "test"};
 
 var args = os.Args;
+
+var apikey string = "";
 
 //_______________________________________________//
 //Entry Point//
@@ -29,7 +31,7 @@ func main() {
 		fmt.Println("Could not find user config directory");
 		return;
 	}
-	defaultConfigPath = userConfigDir + "/Redline13/config.json";
+	defaultConfigPath = userConfigDir + "/redline13/config.json";
 
 	argument := "";
 	if (len(args) > 1) {
@@ -44,7 +46,7 @@ func main() {
 	case "statsdownload":
 		statsDownload();
 	case "config":
-		configEdit();
+		config();
 	case "help":
 		commandHelp();
 	case "version":
@@ -54,7 +56,8 @@ func main() {
 		fmt.Println(getAPIKEY());
 	default:
 		fmt.Println()
-		if (getAPIKEY() == "") {
+		// Fix so it shows with default value and not blank string // DONE
+		if (getAPIKEY() == defaultAPIKEYValue) {
 			fmt.Println("*important* You have no saved apikey, please visit https://www.redline13.com/Account/apikey to generate an api key");
 		}
 		fmt.Println("Usage: ");
@@ -74,34 +77,6 @@ func main() {
 //_______________________________________________//
 //Core Functions//
 
-func configEdit() {
-	openConfig := func(path string) {
-		var cmd *exec.Cmd;
-		switch runtime.GOOS {
-		case "windows":
-			cmd = exec.Command("cmd", "/c", "start", "", path);
-		case "darwin":
-			cmd = exec.Command("open", path);
-		case "linux":
-			cmd = exec.Command("xdg-open", path);
-		default:
-			println("Unsupported operating system: %s", runtime.GOOS);
-			return;
-		}
-		err := cmd.Start();
-		if err != nil {
-			println("Error executing redirect through exec", err);
-			return;
-		}
-	}
-	_, err := os.Stat(defaultConfigPath);
-	if os.IsNotExist(err) {
-		createConfigFile();
-	}
-	if (getFlagExist("-show")) {
-		openConfig(defaultConfigPath);
-	}
-}
 
 func loadTest() {
 	// Create and handle loadTest
@@ -141,45 +116,102 @@ func commandHelp() {
 }
 
 
+func config() {
+	openConfig := func(path string) {
+		var cmd *exec.Cmd;
+		switch runtime.GOOS {
+		case "windows":
+			cmd = exec.Command("cmd", "/c", "start", "", path);
+		case "darwin":
+			cmd = exec.Command("open", path);
+		case "linux":
+			cmd = exec.Command("xdg-open", path);
+		default:
+			println("Unsupported operating system: %s", runtime.GOOS);
+			return;
+		}
+		err := cmd.Start();
+		if err != nil {
+			println("Error executing redirect through exec", err);
+			return;
+		}
+	}
+	printFileContents := func(filePath string) error {
+		fileData, err := ioutil.ReadFile(filePath);
+		if err != nil {
+			return err;
+		}
+		fmt.Println("Config file contents:");
+		fmt.Println(string(fileData));
+		return nil;
+	}
+
+	var created bool = false;
+	_, err := os.Stat(defaultConfigPath);
+	if os.IsNotExist(err) {
+		createConfigFile();
+		fmt.Println("Config file created at: ", defaultConfigPath);
+	} else {
+		created = true;
+	}
+
+	if (getFlagExist("-edit")) {
+		openConfig(defaultConfigPath);
+	} else if (getFlagExist("-show")) {
+		printFileContents(defaultConfigPath);
+	} else if (created) {
+		fmt.Println("Config file already exists");
+	}
+}
+
+
 //_______________________________________________//
 //Miscellaneous//
 
 func printCLIVersion() {
 	//ask about current version
-	fmt.Println("Current version");
+	fmt.Println("Version: 0.0.3");
 }
 
 func printConfigInfo() {
-	fmt.Println("Usage:")
-	fmt.Println("    redline13 config [flags]")
-	fmt.Println("\nFlags:")
-	fmt.Println("    -show - Brings config file to focus on screen")
-	fmt.Println("\nExamples:")
-	fmt.Println("    redline13 config -show")
+	fmt.Println("Usage:");
+	fmt.Println("    redline13 config [flags]");
+	fmt.Println("\nFlags:");
+	fmt.Println("    -edit - Brings config file to focus on screen to edit");
+	fmt.Println("    -show - Displays contents of config");
+	fmt.Println("\nExamples:");
+	fmt.Println("    redline13 config -show");
 }
 
 func getAPIKEY() string {
 	var path string = defaultConfigPath;
-	var apikey string = "";
 
-	jsonData, err := ioutil.ReadFile(path);
-	if err != nil {
-		fmt.Println("Error reading JSON file:", err);
-		return "";
-	}
+	if (apikey == "") {
+		_, err := os.Stat(defaultConfigPath);
+		if os.IsNotExist(err) {
+			fmt.Println("No config file exists, try: \"redline13 config\" to create config file");
+			apikey = "nocfg";
+			return "";
+		}
+		jsonData, err := ioutil.ReadFile(path);
+		if err != nil {
+			fmt.Println("Error reading JSON file:", err);
+			return "";
+		}
 
-	var data map[string]json.RawMessage;
-	err = json.Unmarshal([]byte(jsonData), &data);
-	if err != nil {
-		fmt.Println("Error:", err);
-		return "";
-	}
-	
-	for key, value := range data {
-		if (key == "apikey") {
-			err := json.Unmarshal(value, &apikey);
-			if err != nil {
-				fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
+		var data map[string]json.RawMessage;
+		err = json.Unmarshal([]byte(jsonData), &data);
+		if err != nil {
+			fmt.Println("Error:", err);
+			return "";
+		}
+		
+		for key, value := range data {
+			if (key == "apikey") {
+				err := json.Unmarshal(value, &apikey);
+				if err != nil {
+					fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
+				}
 			}
 		}
 	}
@@ -192,6 +224,7 @@ func displayArgs() {
 	}
 }
 
+var defaultAPIKEYValue string = "Your_Api_Key";
 func createConfigFile() {
 	createDefaultData := func() (map[string]interface{}, error) {
 		var data map[string]interface{} = make(map[string]interface{});
@@ -204,14 +237,14 @@ func createConfigFile() {
 			return nil, err;
 		}
 
+		data["apikey"] = defaultAPIKEYValue;
 		data["keyPairId"] = "Your_Key_Pair_Id";
-		data["apikey"] = "Your_Api_Key";
 		data["servers"] = serversArray;
 		
 		return data, nil;
 	}
 
-	dir, err := os.UserConfigDir(); err = os.Mkdir(dir + "/Redline13", 0777);
+	dir, err := os.UserConfigDir(); err = os.Mkdir(dir + "/redline13", 0777);
 	if err != nil {
 		fmt.Println("Could not find user config directory: ", err);
 		return;
