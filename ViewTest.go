@@ -91,11 +91,11 @@ func printViewTestInfo() {
 	// fmt.Println("	    Flags:");	
 	// fmt.Println("	        -id {load_test_id} : Displays all info on specific loadtest");
 	fmt.Println("Usage:")
-	fmt.Println("    redline13 viewtest [flags]")
+	fmt.Println("    redline viewtest [flags]")
 	fmt.Println("\nFlags:")
 	fmt.Println("    -id - ID of loadTest to view")
 	fmt.Println("\nExamples:")
-	fmt.Println("    redline13 viewtest -id 123321")
+	fmt.Println("    redline viewtest -id 123321")
 }
 
 func parseViewTestJSON(jsonData []byte) [][][]string {

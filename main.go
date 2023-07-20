@@ -39,7 +39,7 @@ func main() {
 	}
 
 	switch argument {
-	case "run", "simple", "jmeter", "logifle", "custom" :
+	case "run", "simple", "jmeter", "logfile", "custom" :
 		loadTest();
 	case "viewtest":
 		viewTest();
@@ -61,15 +61,15 @@ func main() {
 			fmt.Println("*important* You have no saved apikey, please visit https://www.redline13.com/Account/apikey to generate an api key");
 		}
 		fmt.Println("Usage: ");
-		fmt.Println("    redline13 [command]");
+		fmt.Println("    redline [command]");
 		fmt.Println("Available Commands:");
-		fmt.Println("    run - Run a load test on redline13");
+		fmt.Println("    run - Run a load test on redline");
 		fmt.Println("    viewtest - View all tests or specific load test(s)");
 		fmt.Println("    statsdownload - Download load test stats in CSV");
 		fmt.Println("    config - Set up local config with API Key and defaults");
 		fmt.Println("    version - Show CLI version information");
 		fmt.Println("    help - [Command] show information about a command");
-		fmt.Println("Use redline13 help [command] to show flags for command.");
+		fmt.Println("Use redline help [command] to show flags for command.");
 	}
 }
 
@@ -175,12 +175,12 @@ func printCLIVersion() {
 
 func printConfigInfo() {
 	fmt.Println("Usage:");
-	fmt.Println("    redline13 config [flags]");
+	fmt.Println("    redline config [flags]");
 	fmt.Println("\nFlags:");
 	fmt.Println("    -edit - Brings config file to focus on screen to edit");
 	fmt.Println("    -show - Displays contents of config");
 	fmt.Println("\nExamples:");
-	fmt.Println("    redline13 config -show");
+	fmt.Println("    redline config -show");
 }
 
 func getAPIKEY() string {
@@ -189,7 +189,7 @@ func getAPIKEY() string {
 	if (apikey == "") {
 		_, err := os.Stat(defaultConfigPath);
 		if os.IsNotExist(err) {
-			fmt.Println("No config file exists, try: \"redline13 config\" to create config file");
+			fmt.Println("No config file exists, try: \"redline config\" to create config file");
 			apikey = "nocfg";
 			return "";
 		}
@@ -239,6 +239,7 @@ func createConfigFile() {
 
 		data["apikey"] = defaultAPIKEYValue;
 		data["keyPairId"] = "Your_Key_Pair_Id";
+		data["numServers"] = "1";
 		data["servers"] = serversArray;
 		
 		return data, nil;

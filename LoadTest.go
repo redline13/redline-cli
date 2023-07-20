@@ -15,7 +15,6 @@ import (
 	"path/filepath";
 	"runtime";
 	"strings";
-	"time";
 )
 
 var bodyData map[string]interface{};
@@ -465,32 +464,32 @@ func jmeterLoadTest() {
 		return;
 	}
 
-	responseData := httpPostRequest(body, writer.FormDataContentType());
+	responseData, statusCode := httpPostRequest(body, writer.FormDataContentType());
 
-	if getFlagExist("-o") {
+	id := ""
+	if (statusCode == 200) {
 		var idStorage map[string]float64;
 		err = json.Unmarshal(responseData, &idStorage);
 		if err != nil {
 			println("Error parsing http response", err);
 		} else {
-			// Ensure that our redirect to webpage doesn't beat its creation
-			timeSeconds := (1/4) * time.Second;
-			time.Sleep(timeSeconds);
-
-			id := fmt.Sprintf("%.0f", idStorage["loadTestId"]);
-			redirectBrowserToUrl(id);
+			id = fmt.Sprintf("%.0f", idStorage["loadTestId"]);
+			fmt.Println("loadTestId:", id);
+			if getFlagExist("-o") {
+				redirectBrowserToUrl(id);
+			}
 		}
 	}
 }
 
 // http requests//
-func httpPostRequest(body *bytes.Buffer, content string) []byte {
+func httpPostRequest(body *bytes.Buffer, content string) ([]byte, int) {
 	client := http.Client{};
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/Api/LoadTest", build), body);
 	if err != nil {
 		fmt.Println("Error creating request: " + err.Error());
-		return nil;
+		return nil, -1;
 	}
 	req.Header.Set("X-Redline-Auth", getAPIKEY());
 	req.Header.Add("Content-Type", content);
@@ -498,19 +497,23 @@ func httpPostRequest(body *bytes.Buffer, content string) []byte {
 	resp, err := client.Do(req);
 	if err != nil {
 		fmt.Println("Error sending request: " + err.Error());
-		return nil;
+		return nil, resp.StatusCode;
 	}
 	defer resp.Body.Close();
 
-	fmt.Println("Response status:", resp.Status);
-
+	//fmt.Println("Response status:", resp.Status);
+	
 	responseBody, err := ioutil.ReadAll(resp.Body);
 	if err != nil {
 		fmt.Println("Error reading response body: " + err.Error());
-		return nil;
+		return nil, resp.StatusCode;
 	}
 
-	return responseBody;
+	if resp.StatusCode != 200 {
+		fmt.Println(string(responseBody))
+	}
+
+	return responseBody, resp.StatusCode;
 }
 
 func redirectBrowserToUrl(id string) {
@@ -551,7 +554,7 @@ func printLoadTestInfo() {
 	// fmt.Println("	    Gatling Test");
 	// fmt.Println("	    Custom Test");
 	fmt.Println("Usage:");
-	fmt.Println("    redline13 run [testType/fileForTest] [flags]");
+	fmt.Println("    redline run [testType/fileForTest] [flags]");
 	fmt.Println("\nTest Types:");
 	fmt.Println("    jmeter - can ommit by providing .jmx file type");
 	fmt.Println("    More to be added...");
@@ -573,7 +576,7 @@ func printLoadTestInfo() {
 	fmt.Println("    -split - Filename(s) will be split across all the test servers, Usually used for splitting CSV files.");
 	fmt.Println("    -o - follows loadtest to browser");
 	fmt.Println("\nExamples:");
-	fmt.Println("    redline13 run test.jmx -cfg myConfig.json -name CLILoadTest -desc \"my desc\" -extras extra1.csv extra2.csv");
+	fmt.Println("    redline run test.jmx -cfg myConfig.json -name CLILoadTest -desc \"my desc\" -extras extra1.csv extra2.csv");
 }
 
 func parseTestJSON(path string) (map[string]interface{}, error) {

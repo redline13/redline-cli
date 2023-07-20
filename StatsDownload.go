@@ -142,12 +142,12 @@ func printStatsDownloadInfo() {
 	// fmt.Println("	        -id {load_test_id} : ID of loadTest to download data");
 	// fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
 	fmt.Println("Usage:")
-	fmt.Println("    redline13 statsdownload [flags]")
+	fmt.Println("    redline statsdownload [flags]")
 	fmt.Println("\nFlags:")
 	fmt.Println("    -id - ID of loadTest to download data")
 	fmt.Println("    -type {type1Value} {type2Value}... - Specific download types to download")
 	fmt.Println("\nExamples:")
-	fmt.Println("    redline13 statsdownload -id 123321 -type cpuUsage netIn netOut")
+	fmt.Println("    redline statsdownload -id 123321 -type cpuUsage netIn netOut")
 }
 
 func parseStatsDownloadJSON(jsonData []byte) [][]string {
