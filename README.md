@@ -22,9 +22,9 @@ Available Commands:
 
     redline config -edit
 
-    redline run test.jmx -cfg mycfg.json -name MyCLILoadTest -desc "My test Description"
-    redline run test.jmx -cfg mycfg.json -name MyCLILoadTest -o
-    redline run test.jmx -cfg mycfg.json -servers '[{"location":"us-east-1","num":"15","onDemand":"T","size":"m5.large","subnetId":"subnet-00d66cc55ec4cf4bd","usersPerServer":"5"}]' -jvm_args arg1 arg2 -extras extra1.csv extra2.csv
+    redline run test.jmx -cfg example.json -name MyCLILoadTest -desc "My test Description"
+    redline run test.jmx -cfg example.json -name MyCLILoadTest -o
+    redline run test.jmx -cfg example.json -servers '[{"location":"us-east-1","num":"15","onDemand":"T","size":"m5.large","subnetId":"subnet-00d66cc55ec4cf4bd","usersPerServer":"5"}]' -jvm_args arg1 arg2 -extras extra1.csv extra2.csv
 
     redline viewtest -id 123321
 
