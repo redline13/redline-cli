@@ -30,3 +30,5 @@ Available Commands:
 
     redline statsdownload -id 123321 -type netIn netOut OutputFile1 OutputFile2
 
+    redline help run
+
