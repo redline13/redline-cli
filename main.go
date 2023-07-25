@@ -16,8 +16,6 @@ var build string = production;
 
 var defaultConfigPath string;
 
-var shortCallTestTypes []string = []string{"simple", "jmeter", "logfile", "custom", "test"};
-
 var args = os.Args;
 
 var apikey string = "";
@@ -39,14 +37,16 @@ func main() {
 	}
 
 	switch argument {
-	case "run", "simple", "jmeter", "logfile", "custom" :
-		loadTest();
+	case "run":
+		handleLoadTest();
 	case "viewtest":
-		viewTest();
+		handleViewTest();
 	case "statsdownload":
-		statsDownload();
+		handleStatsDownload();
+	case "delete":
+		handleDelete();
 	case "config":
-		config();
+		handleConfig();
 	case "help":
 		commandHelp();
 	case "version":
@@ -66,6 +66,7 @@ func main() {
 		fmt.Println("    run - Run a load test on redline");
 		fmt.Println("    viewtest - View all tests or specific load test(s)");
 		fmt.Println("    statsdownload - Download load test stats in CSV");
+		fmt.Println("    delete - Delete or Cancel load test from loadTestId");
 		fmt.Println("    config - Set up local config with API Key and defaults");
 		fmt.Println("    version - Show CLI version information");
 		fmt.Println("    help - [Command] show information about a command");
@@ -76,24 +77,6 @@ func main() {
 
 //_______________________________________________//
 //Core Functions//
-
-
-func loadTest() {
-	// Create and handle loadTest
-	argument := args[1];
-	shortCall := (argument == "simple" || argument == "jmeter" || argument == "logfile" || argument == "custom" || argument == "test");
-	handleLoadTest(shortCall);
-}
-
-func viewTest() {
-	// Create and handle viewTest
-	handleViewTest();
-}
-
-func statsDownload() {
-	// Create and handle statsDownload
-	handleStatsDownload();
-}
 
 func commandHelp() {
 	arguement := "";
@@ -110,13 +93,15 @@ func commandHelp() {
 		printStatsDownloadInfo();
 	case "config":
 		printConfigInfo();
+	case "delete":
+		printDeleteInfo();
 	default:
 		fmt.Println("Unknown command, cannot display help");
 	}
 }
 
 
-func config() {
+func handleConfig() {
 	openConfig := func(path string) {
 		var cmd *exec.Cmd;
 		switch runtime.GOOS {
@@ -247,7 +232,7 @@ func createConfigFile() {
 
 	dir, err := os.UserConfigDir(); err = os.Mkdir(dir + "/redline13", 0777);
 	if err != nil {
-		fmt.Println("Could not find user config directory: ", err);
+		fmt.Println("Could not find/create user config directory: ", err);
 		return;
 	}
 

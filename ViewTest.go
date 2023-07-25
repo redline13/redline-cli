@@ -79,6 +79,11 @@ func httpRequestViewTest() []byte {
 		return nil;
 	}
 
+	if (resp.StatusCode != 200) {
+		fmt.Println("Response status:", resp.Status);
+		fmt.Println(string(body));
+	}
+
 	return body;
 }
 
@@ -94,7 +99,7 @@ func printViewTestInfo() {
 	fmt.Println("    redline viewtest [flags]")
 	fmt.Println("\nFlags:")
 	fmt.Println("    -id - ID of loadTest to view")
-	fmt.Println("\nExamples:")
+	fmt.Println("\nExample:")
 	fmt.Println("    redline viewtest -id 123321")
 }
 

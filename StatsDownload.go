@@ -97,6 +97,12 @@ func httpRequestStatsDownload(id string) []byte {
 		fmt.Println("Error reading response body: " + err.Error());
 		return nil;
 	}
+
+	if (resp.StatusCode != 200) {
+		fmt.Println("Response status:", resp.Status);
+		fmt.Println(string(body));
+	}
+
 	return body;
 }
 
@@ -146,7 +152,7 @@ func printStatsDownloadInfo() {
 	fmt.Println("\nFlags:")
 	fmt.Println("    -id - ID of loadTest to download data")
 	fmt.Println("    -type {type1Value} {type2Value}... - Specific download types to download")
-	fmt.Println("\nExamples:")
+	fmt.Println("\nExample:")
 	fmt.Println("    redline statsdownload -id 123321 -type cpuUsage netIn netOut")
 }
 
