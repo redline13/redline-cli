@@ -15,6 +15,7 @@ Available Commands:
     run - Run a load test on redline13
     viewtest - View all tests or specific load test(s)
     statsdownload - Download load test stats in CSV or compressed file formats
+    delete - Delete or Cancel load test from loadTestId
     config - Set up local config with API Key and defaults
     version - Show CLI version information
     help - [Command] show information about a command
