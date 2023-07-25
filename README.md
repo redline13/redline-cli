@@ -2,7 +2,7 @@
 A simple CLI written in Golang for load testing through Redline13
 
 ## Description
-This CLI utilizes Redline13's API Infustructure for cloud based load testing to run JMeter, Gatling, or custom code load test plans at scale using low cost instance pricing.
+The objective of this project was to create a versatile and powerful tool using Golang, designed as a standalone executable or CLI tool. This program enables users to execute JMeter, Gatling, or custom code load test plans at scale, all while benefiting from cost-effective instance pricing. The key to achieving this was by utilizing the capabilities of Redline13's API infrastructure. Through this API, users can effortlessly run load tests with clearly defined parameters and options, providing them with complete control and flexibility over their load testing process. 
 
 ## Installation
 Simply fork or clone repo to desired location. Execute "go build -o redline" in the project directory to build a working executable. 
@@ -35,6 +35,4 @@ Available Commands:
 
     redline help run
 ## About
-The objective of this project was to create a versatile and powerful tool using Golang, designed as a standalone executable or CLI tool. This program enables users to execute JMeter, Gatling, or custom code load test plans at scale, all while benefiting from cost-effective instance pricing. The key to achieving this was by utilizing the capabilities of Redline13's API infrastructure. Through this API, users can effortlessly run load tests with clearly defined parameters and options, providing them with complete control and flexibility over their load testing process. 
-
 This project was built by myself, [Mike Bugden](https://www.linkedin.com/in/mike-bugden-2b5196b0), during my summer internship as a developer at Redline13. The experience gained from this internship has been extremely valuable, as it allowed me to not only learn Golang as a new programming language, but to also expand my proficiency in other areas of software development. This project has also worked greatly to expose myself to the complex and fascinating world of load testing, and load testing software. Overall, this project has broadened my expertise in various aspects of software development, including Golang programming and the fascinating world of load testing.
