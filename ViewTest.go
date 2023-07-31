@@ -1,14 +1,15 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"encoding/json";
+	"fmt";
+	"io/ioutil";
+	"net/http";
 )
 
 //_______________________________________________//
 //Entry Point//
+
 
 func handleViewTest() {
 	id := getFlag("-id", "")
@@ -19,9 +20,9 @@ func handleViewTest() {
 	}
 }
 
-
 //_______________________________________________//
 //Core Functions//
+
 
 func showTest(id string) {
 	request := httpRequestViewTest();
@@ -71,8 +72,6 @@ func httpRequestViewTest() []byte {
 	}
 	defer resp.Body.Close();
 
-	//fmt.Println("Response status:", resp.Status);
-
 	body, err := ioutil.ReadAll(resp.Body);
 	if err != nil {
 		fmt.Println("Error reading response body: " + err.Error());
@@ -87,24 +86,20 @@ func httpRequestViewTest() []byte {
 	return body;
 }
 
-
 //_______________________________________________//
 //Miscellaneous//
 
+
 func printViewTestInfo() {
-	// fmt.Println("	viewTest - View existing load tests");
-	// fmt.Println("	    Flags:");	
-	// fmt.Println("	        -id {load_test_id} : Displays all info on specific loadtest");
-	fmt.Println("Usage:")
-	fmt.Println("    redline viewtest [flags]")
-	fmt.Println("\nFlags:")
-	fmt.Println("    -id - ID of loadTest to view")
-	fmt.Println("\nExample:")
-	fmt.Println("    redline viewtest -id 123321")
+	fmt.Println("Usage:");
+	fmt.Println("    redline viewtest [flags]");
+	fmt.Println("\nFlags:");
+	fmt.Println("    -id - ID of loadTest to view");
+	fmt.Println("\nExample:");
+	fmt.Println("    redline viewtest -id 123321");
 }
 
 func parseViewTestJSON(jsonData []byte) [][][]string {
-	// Dump json into map
 	var data []map[string]interface{};
 	err := json.Unmarshal(jsonData, &data);
 	if err != nil {
@@ -112,7 +107,6 @@ func parseViewTestJSON(jsonData []byte) [][][]string {
 		return nil;
 	}
 
-	// Convert map into 3d array [loadTest][dataEntry][(datapair: [key, value])]
 	var Rarr [][][]string;
 	for _, obj := range data {
 		var arr [][]string;

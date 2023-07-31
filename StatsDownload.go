@@ -1,37 +1,35 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
-	"path/filepath"
+	"encoding/json";
+	"fmt";
+	"io";
+	"io/ioutil";
+	"net/http";
+	"os";
+	"strings";
+	"path/filepath";
 )
 
 //_______________________________________________//
 //Entry Point//
 
-// required flags: -id -type
+
 func handleStatsDownload() {
-	// Get ID flag
 	id := getFlag("-id", "");
 	if (id == "") {
 		fmt.Println("You must provide a loadTestId with -id flag");
 		return;
 	}
 
-	// Get Path flag
 	path := getFlag("-path", "");
 	if (path == "") {
 		path = getDownloadDirPath();
 	}
+
 	response := httpRequestStatsDownload(id);
 	parsedResponse := parseStatsDownloadJSON(response);
 
-	// Get download types with -type flag
 	downloadTypes := getMultiFlag("-type");
 	if (len(downloadTypes) == 0) {
 		fmt.Println("Must specify download type with -type flag, available types:");
@@ -45,7 +43,6 @@ func handleStatsDownload() {
 		foundType := false;
 		for i := 0; i < len(parsedResponse); i++ {
 			localDownloadType := parsedResponse[i][0];
-			//fmt.Println(localDownloadType);
 			if (localDownloadType == downloadType) {
 				foundType = true;
 				url := parsedResponse[i][1];
@@ -71,6 +68,7 @@ func handleStatsDownload() {
 //_______________________________________________//
 //Core Functions//
 
+
 func httpRequestStatsDownload(id string) []byte {
 	client := http.Client{};
 
@@ -89,8 +87,6 @@ func httpRequestStatsDownload(id string) []byte {
 		return nil;
 	}
 	defer resp.Body.Close();
-
-	//fmt.Println("Response status:", resp.Status);
 
 	body, err := ioutil.ReadAll(resp.Body);
 	if err != nil {
@@ -142,22 +138,19 @@ func downloadFile(url string, directory string, fileName string, fileType string
 //_______________________________________________//
 //Miscellaneous//
 
+
 func printStatsDownloadInfo() {
-	// fmt.Println("	statsDownload - Download loadTest stats as CSV");
-	// fmt.Println("	    Flags:");	
-	// fmt.Println("	        -id {load_test_id} : ID of loadTest to download data");
-	// fmt.Println("	        -type {type1Value} {type2Value} : Specific download types to download");
-	fmt.Println("Usage:")
-	fmt.Println("    redline statsdownload [flags]")
-	fmt.Println("\nFlags:")
-	fmt.Println("    -id - ID of loadTest to download data")
-	fmt.Println("    -type {type1Value} {type2Value}... - Specific download types to download")
-	fmt.Println("\nExample:")
-	fmt.Println("    redline statsdownload -id 123321 -type cpuUsage netIn netOut")
+	fmt.Println("Usage:");
+	fmt.Println("    redline statsdownload [flags]");
+	fmt.Println("\nFlags:");
+	fmt.Println("    -id - ID of loadTest to download data");
+	fmt.Println("    -type {type1Value} {type2Value}... - Specific download types to download");
+	fmt.Println("    -path {filePath} - Specific filePath to download files");
+	fmt.Println("\nExample:");
+	fmt.Println("    redline statsdownload -id 123321 -type cpuUsage netIn netOut");
 }
 
 func parseStatsDownloadJSON(jsonData []byte) [][]string {
-	// Set up handling array in response
 	var data map[string]json.RawMessage;
 	err := json.Unmarshal(jsonData, &data);
 	if err != nil {
@@ -193,20 +186,6 @@ func parseStatsDownloadJSON(jsonData []byte) [][]string {
 }
 
 func getDownloadDirPath() string {
-	// usr, err := user.Current();
-	// if err != nil {
-	// 	fmt.Println(err);
-	// 	return "";
-	// }
-
-	// homeDir := usr.HomeDir;
-	// downloadsDir := filepath.Join(homeDir, "Downloads");
-
-    //return downloadsDir;
-
-	// _____________________________________ //
-
-	// Downlaod to current working directory 
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)

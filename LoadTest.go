@@ -22,6 +22,7 @@ var bodyData map[string]interface{};
 //_______________________________________________//
 //Entry Point//
 
+
 func handleLoadTest() {
 	argument := "";
 	if len(args) > 2 {
@@ -37,8 +38,6 @@ func handleLoadTest() {
 	}
 
 	switch argument {
-	case "simple":
-		//simpleLoadTest();
 	case "jmeter":
 		jmeterLoadTest();
 	case "gatling":
@@ -54,6 +53,7 @@ func handleLoadTest() {
 
 //_______________________________________________//
 //Core Functions//
+
 
 func customLoadTest() {
 	var customFileTypes []string = []string{
@@ -100,7 +100,6 @@ func customLoadTest() {
 			for _, item := range serverMapArray {
 				for innerKey := range item {
 					sKey := fmt.Sprintf("servers[%d][%s]", count, innerKey);
-					//fmt.Println(sKey, item[innerKey]);
 					bodyData[sKey] = item[innerKey];
 				}
 				count++;
@@ -170,7 +169,7 @@ func customLoadTest() {
 
 	responseData, statusCode := httpPostRequest(body, writer.FormDataContentType());
 
-	id := ""
+	id := "";
 	if (statusCode == 200) {
 		var idStorage map[string]float64;
 		err = json.Unmarshal(responseData, &idStorage);
@@ -235,7 +234,6 @@ func gatlingLoadTest() {
 			for _, item := range serverMapArray {
 				for innerKey := range item {
 					sKey := fmt.Sprintf("servers[%d][%s]", count, innerKey);
-					//fmt.Println(sKey, item[innerKey]);
 					bodyData[sKey] = item[innerKey];
 				}
 				count++;
@@ -305,7 +303,7 @@ func gatlingLoadTest() {
 
 	responseData, statusCode := httpPostRequest(body, writer.FormDataContentType());
 
-	id := ""
+	id := "";
 	if (statusCode == 200) {
 		var idStorage map[string]float64;
 		err = json.Unmarshal(responseData, &idStorage);
@@ -363,7 +361,6 @@ func jmeterLoadTest() {
 			for _, item := range serverMapArray {
 				for innerKey := range item {
 					sKey := fmt.Sprintf("servers[%d][%s]", count, innerKey);
-					//fmt.Println(sKey, item[innerKey]);
 					bodyData[sKey] = item[innerKey];
 				}
 				count++;
@@ -439,7 +436,7 @@ func jmeterLoadTest() {
 
 	responseData, statusCode := httpPostRequest(body, writer.FormDataContentType());
 
-	id := ""
+	id := "";
 	if (statusCode == 200) {
 		var idStorage map[string]float64;
 		err = json.Unmarshal(responseData, &idStorage);
@@ -455,7 +452,6 @@ func jmeterLoadTest() {
 	}
 }
 
-// http requests//
 func httpPostRequest(body *bytes.Buffer, content string) ([]byte, int) {
 	client := http.Client{};
 
@@ -520,11 +516,12 @@ func testLoadTest() {
 //_______________________________________________//
 //Miscellaneous//
 
-// Must be called in all loadTests so bodyData map is make()
+
+// Must be called in all loadTests so bodyData map is made
 func setInitialBodyData() {
 	bodyData = make(map[string]interface{});
 
-	data, err := parseTestJSON(defaultConfigPath);
+	data, err := parseLoadTestJSON(defaultConfigPath);
 	if err != nil {
 		fmt.Println("Error parsing JSON");
 		return;
@@ -535,7 +532,7 @@ func setInitialBodyData() {
 
 	jsonPath := getFlag("-cfg", "");
 	if jsonPath != "" {
-		data, err := parseTestJSON(jsonPath);
+		data, err := parseLoadTestJSON(jsonPath);
 		if err != nil {
 			fmt.Println("Error parsing JSON");
 			return;
@@ -586,7 +583,7 @@ func printLoadTestInfo() {
 	fmt.Println("For further information on loadTest flags, visit http://redline13.com/ApiDoc/LoadTest/Post");
 }
 
-func parseTestJSON(path string) (map[string]interface{}, error) {
+func parseLoadTestJSON(path string) (map[string]interface{}, error) {
 	var ret map[string]interface{};
 	ret = make(map[string]interface{});
 
@@ -615,7 +612,6 @@ func parseTestJSON(path string) (map[string]interface{}, error) {
 				for _, item := range serverMapArray {
 					for innerKey := range item {
 						sKey := fmt.Sprintf("%s[%d][%s]", key, count, innerKey);
-						//fmt.Println(sKey, item[innerKey]);
 						ret[sKey] = item[innerKey];
 					}
 					count++;
@@ -658,7 +654,6 @@ func parseTestJSON(path string) (map[string]interface{}, error) {
 				fmt.Printf("Error parsing value for key '%s': %s\n", key, err);
 			} else {
 				for _, item := range pluginsMapArray {
-					//pluginName = string(item["plugin"])
 					for key, value := range item {
 						if key == "plugin" {
 							err := json.Unmarshal(value, &pluginName);
@@ -710,27 +705,6 @@ func parseTestJSON(path string) (map[string]interface{}, error) {
 	return ret, nil;
 }
 
-func parseLoadTestJSON(path string) ([][]string, error) {
-	jsonData, err := ioutil.ReadFile(path);
-	if err != nil {
-		fmt.Println("Error reading JSON file:", err);
-		return nil, err;
-	}
-
-	var data map[string]string;
-	err = json.Unmarshal(jsonData, &data);
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err);
-		return nil, err;
-	}
-
-	var arr [][]string;
-	for key, value := range data {
-		arr = append(arr, []string{key, value});
-	}
-	return arr, nil;
-}
-
 func addFieldsToBody(form url.Values, writer *multipart.Writer) error {
 	for key, values := range form {
 		for _, value := range values {
@@ -744,7 +718,6 @@ func addFieldsToBody(form url.Values, writer *multipart.Writer) error {
 }
 
 func addFileToBody(filePath string, writer *multipart.Writer, key string) error {
-	//filePath := "/Downloads/MyJmeterTest.jmx"
 	file, err := os.Open(filePath);
 	if err != nil {
 		fmt.Println("Error opening file:", err);
@@ -752,14 +725,12 @@ func addFileToBody(filePath string, writer *multipart.Writer, key string) error 
 	}
 	defer file.Close();
 
-	// Create the file part in the multipart form
 	part, err := writer.CreateFormFile(key, filepath.Base(filePath));
 	if err != nil {
 		fmt.Println("Error creating form file part:", err);
 		return err;
 	}
 
-	// Copy the file contents to the file part
 	_, err = io.Copy(part, file);
 	if err != nil {
 		fmt.Println("Error copying file contents to part:", err);
@@ -789,7 +760,6 @@ func getFileArg(fileType string) string {
 	return "";
 }
 
-// takes a map[string]interface{} and a writer, writes to body based on interface type
 func writeFromBodyData(writer *multipart.Writer, data map[string]interface{}) {
 	writeKeyValuePair := func(writer *multipart.Writer, key string, value string) {
 		if isFile(value) {
@@ -810,7 +780,6 @@ func writeFromBodyData(writer *multipart.Writer, data map[string]interface{}) {
 	}
 }
 
-// takes a key, value, and *map[stirng]interface{} and adds value based on key state (use if key might already exist and multiple are needed)
 func addToInterfaceMap(key string, value string, Map *map[string]interface{}) error {
 	if interfaceValue, ok := (*Map)[key]; ok {
 		switch interfaceValue.(type) {

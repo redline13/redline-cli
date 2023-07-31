@@ -7,9 +7,9 @@ import (
 	"encoding/json";
 )
 
-
 //_______________________________________________//
 //Entry Point//
+
 
 func handleDelete() {
 	id := getFlag("-id", "")
@@ -70,6 +70,7 @@ func httpRequestDelete(id string) []byte {
 
 //_______________________________________________//
 //Miscellaneous//
+
 
 func parseDeleteJSON(jsonData []byte) map[string]string {
 	var data map[string]string;

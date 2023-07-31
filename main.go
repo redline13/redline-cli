@@ -23,8 +23,9 @@ var apikey string = "";
 //_______________________________________________//
 //Entry Point//
 
+
 func main() {
-	userConfigDir, err := os.UserConfigDir()
+	userConfigDir, err := os.UserConfigDir();
 	if err != nil {
 		fmt.Println("Could not find user config directory");
 		return;
@@ -53,10 +54,7 @@ func main() {
 		printCLIVersion();
 	case "test":
 		// for testing
-		fmt.Println(getAPIKEY());
 	default:
-		fmt.Println()
-		// Fix so it shows with default value and not blank string // DONE
 		if (getAPIKEY() == defaultAPIKEYValue) {
 			fmt.Println("*important* You have no saved apikey, please visit https://www.redline13.com/Account/apikey to generate an api key");
 		}
@@ -74,9 +72,9 @@ func main() {
 	}
 }
 
-
 //_______________________________________________//
 //Core Functions//
+
 
 func commandHelp() {
 	arguement := "";
@@ -95,6 +93,8 @@ func commandHelp() {
 		printConfigInfo();
 	case "delete":
 		printDeleteInfo();
+	case "version":
+		printCLIVersion();
 	default:
 		fmt.Println("Unknown command, cannot display help");
 	}
@@ -149,18 +149,18 @@ func handleConfig() {
 	}
 }
 
+func printCLIVersion() {
+	fmt.Println("Version: 1.0.0");
+}
 
 //_______________________________________________//
 //Miscellaneous//
 
-func printCLIVersion() {
-	//ask about current version
-	fmt.Println("Version: 0.0.3");
-}
 
 func printConfigInfo() {
 	fmt.Println("Usage:");
 	fmt.Println("    redline config [flags]");
+	fmt.Println("    redline config - Creates new config file");
 	fmt.Println("\nFlags:");
 	fmt.Println("    -edit - Brings config file to focus on screen to edit");
 	fmt.Println("    -show - Displays contents of config");
@@ -203,20 +203,14 @@ func getAPIKEY() string {
 	return apikey;
 }
 
-func displayArgs() {
-	for i := 1; i < len(args); i++ {
-		fmt.Println(args[i]);
-	}
-}
-
 var defaultAPIKEYValue string = "Your_Api_Key";
 func createConfigFile() {
 	createDefaultData := func() (map[string]interface{}, error) {
 		var data map[string]interface{} = make(map[string]interface{});
 		serversArray := []map[string]string{{}};
 		serversArray[0] = make(map[string]string);
-		jsonStr := `{"location":"us-east-1", "num":"1", "onDemand":"T", "size":"m5.large", "subnetId":"subnet-00d66cc55ec4cf4bd", "usersPerServer":"1"}`
-		err := json.Unmarshal([]byte(jsonStr), &serversArray[0])
+		jsonStr := `{"location":"us-east-1", "num":"1", "onDemand":"T", "size":"m5.large", "subnetId":"subnet-00d66cc55ec4cf4bd", "usersPerServer":"1"}`;
+		err := json.Unmarshal([]byte(jsonStr), &serversArray[0]);
 		if err != nil {
 			fmt.Println("Error creating default data for config file: ", err);
 			return nil, err;
@@ -263,8 +257,13 @@ func createConfigFile() {
 	defer file.Close();
 }
 
+func displayArgs() {
+	for i := 1; i < len(args); i++ {
+		fmt.Println(args[i]);
+	}
+}
 
-//Flag Functions//
+// Flag Functions //
 func getFlag(flag string, defaultFlag string) string {
 	for i := 0; i < (len(args) - 1); i++ {
 		if (args[i] == flag) {
@@ -288,18 +287,15 @@ func getMultiFlag(flag string) []string {
 
 	active := false
 	for i := 0; i < len(args); i++ {
-		//fmt.Println(args[i]);
 		typeFlag := (args[i] == flag);
 		if (typeFlag) {
 			active = true;
-			//fmt.Println("actived");
 		}
 		isFlag := strings.Contains(args[i], "-")
 		if (!isFlag && active) {
 			ret = append(ret, args[i]);
 		} else if (isFlag && !typeFlag) {
 			active = false;
-			//fmt.Println("unactived");
 		}
 	}
 	return ret;
